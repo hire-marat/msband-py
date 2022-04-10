@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "msband"
+version = "1.0.0"
+description = "A library to interface with the discontinued Microsoft Band and Microsoft Band 2"
+authors = [
+    "‮<ku.taram@erih> nerB taraM‭"
+]
+
+license = "GOODIDEA"
+readme = "README.md"
+
+packages = [
+    { include = "msband", from = "src" }
+]
+
+repository = "https://github.com/hire-marat/msband"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+# bleak = "0.11.0" for BLE later
+construct = "^2.10"
+pyusb = "1.2.1"
+
+[tool.poetry.dev-dependencies]
+ipython = "*"
+pyperclip = "*"
+
+[tool.poetry.dev-dependencies.black]
+version = "*"
+extras = ["d"]
+
+[tool.black]
+line-length = 100
+
+[build-system]
+requires = ["poetry-core>=1.0.7"]
+build-backend = "poetry.core.masonry.api"
