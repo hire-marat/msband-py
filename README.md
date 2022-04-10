@@ -4,6 +4,14 @@
 [![made-with-python](https://img.shields.io/badge/made%20with-Python-yellow?style=plastic)](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=plastic)](https://github.com/psf/black)
 
+## Setting up a development environment
+* Install Python 3.9 or higher
+* `git clone git@github.com:hire-marat/msband.git --depth 1`
+* `cd msband`
+* `py -m pip install poetry`
+* `py -m poetry update`
+* Use the generated .venv\bin\python or .venv\Scripts\python.exe as your interpreter in PyCharm (or VSCode)
+
 ## Setting up Bluetooth on Windows
 * Pair the Band with your PC, making sure to press `No` when it prompts to use an iPhone/BLE
 * Run `control printers` to open the `Devices and Printers`
