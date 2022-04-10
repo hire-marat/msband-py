@@ -1,7 +1,9 @@
 import typing
 import logging
 import construct
+from msband.static import BandType
 from msband.static.command import Command
+from msband.static.constants import BandConstants
 from msband.static.status import Status, StatusPacket
 
 
@@ -9,17 +11,29 @@ MAX_TRANSFER = 64
 
 
 class ProtocolInterface:
-    __slots__ = "acquire_vars"
+    __slots__ = "acquire_vars", "band_type"
+
+    def __init__(self):
+        self.acquire_vars = None
+        self.band_type = None
+
+    @property
+    def constants(self) -> BandConstants:
+        if self.band_type is None:
+            api_version = self.command(Command.get("CoreModuleGetApiVersion"))
+            self.band_type = BandType.Envoy if api_version > 30 else BandType.Cargo
+        return BandConstants.by_type[self.band_type]
 
     def acquire(self, **kwargs) -> None:
         self.acquire_vars = kwargs
+        self.band_type = None
         try:
             del self.acquire_vars["kwargs"]
         except KeyError:
             pass
 
     def reacquire(self) -> None:
-        if self.acquire_vars == None:
+        if self.acquire_vars is None:
             raise ValueError("Must acquire() at least once before reacquire()")
         return self.acquire(**self.acquire_vars)
 

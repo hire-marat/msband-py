@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "msband"
-version = "1.0.0"
+version = "1.1.0"
 description = "A library to interface with the discontinued Microsoft Band and Microsoft Band 2"
 authors = [
     "‮<ku.taram@erih> nerB taraM‭"
@@ -20,10 +20,12 @@ python = "^3.9"
 
 # bleak = "0.11.0" for BLE later
 construct = "^2.10"
-pyusb = "1.2.1"
+pyusb = "^1.2"
+pillow = "^9.1"
 
 [tool.poetry.dev-dependencies]
 ipython = "*"
+poetry = "*"
 pyperclip = "*"
 
 [tool.poetry.dev-dependencies.black]

@@ -3,6 +3,8 @@ import construct
 import dataclasses
 from msband.static.facility import Facility, FacilityAdapter
 from msband.static import (
+    ARGB,
+    TileData,
     BoolAdapter,
     Version,
     FirmwareApp,
@@ -27,6 +29,7 @@ from construct import (
     Prefixed,
     Const,
     GreedyBytes,
+    PrefixedArray,
 )
 
 COMMAND_PACKET = 12025  # F9 2E
@@ -184,8 +187,8 @@ class Command:
     @staticmethod
     def parse_command_packet(data: bytes):
         parsed = Command.packet_struct.parse(data)
-        key = parsed.ID.Facility, parsed.ID.Code, parsed.ID.Transferless
-        return Command.from_fields[key], parsed.Arguments
+        key = parsed.Facility, parsed.Code, parsed.Transferless
+        return Command.from_fields[key], parsed.DataLength, parsed.Arguments
 
     def build_command_packet(
         self, **kwargs
@@ -563,19 +566,29 @@ InstalledAppListSet = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=1,
     Transferless=False,
-)
+    Arguments={
+        "Count": Int32ul,
+    },
+    Transfer={
+        "Tiles": PrefixedArray(Int32ul, TileData),
+    },
+)  # TODO: verify
 
 InstalledAppListStartStripSyncStart = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=2,
     Transferless=False,
+    Transfer={},
+    Response=Pass,
 )
 
 InstalledAppListStartStripSyncEnd = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=3,
     Transferless=False,
-)
+    Transfer={},
+    Response=Pass,
+)  # TODO: verify
 
 InstalledAppListGetDefaults = Command(
     Facility=Facility.ModuleInstalledAppList,
@@ -635,6 +648,7 @@ InstalledAppListGetMaxTileCount = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=21,
     Transferless=True,
+    Response=Int32ul,
 )
 
 InstalledAppListGetMaxTileAllocatedCount = Command(
@@ -792,6 +806,12 @@ FireballUIWriteMeTileImageWithID = Command(
     Facility=Facility.ModuleFireballUI,
     Code=17,
     Transferless=False,
+    Arguments={
+        "ImageId": Int32ul,
+    },
+    Transfer={
+        "ImageBytes": GreedyBytes,
+    },
 )
 
 ThemeColorSetFirstPartyTheme = Command(
@@ -810,6 +830,15 @@ ThemeColorSetCustomTheme = Command(
     Facility=Facility.ModuleThemeColor,
     Code=2,
     Transferless=False,
+    Transfer={
+        "Base": ARGB,
+        "Highlight": ARGB,
+        "Lowlight": ARGB,
+        "SecondaryText": ARGB,
+        "HighContrast": ARGB,
+        "Muted": ARGB,
+        "GUID": PaddedString(16, "u8"),
+    },
 )
 
 ThemeColorReset = Command(
@@ -986,7 +1015,7 @@ GetProductSerialNumber = Command(
     Facility=Facility.LibraryConfiguration,
     Code=8,
     Transferless=True,
-    Response=PaddedString(12, 'u8')
+    Response=PaddedString(12, "u8"),
 )
 
 KeyboardCmd = Command(

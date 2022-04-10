@@ -1,6 +1,9 @@
 import enum
+import itertools
+import uuid
 import logging
 import construct
+from PIL import Image
 import datetime as dt
 from construct import (
     this,
@@ -14,6 +17,8 @@ from construct import (
     Pass,
     If,
     Padded,
+    Default,
+    Bytes,
 )
 
 
@@ -43,6 +48,63 @@ class BoolAdapter(Adapter):
 
     def _decode(self, obj, context, path):
         return bool(obj)
+
+
+class GUIDAdapter(Adapter):
+    def _encode(self, guid: uuid.UUID, context, path):
+        return guid.bytes
+
+    def _decode(self, guid: bytes, context, path):
+        return uuid.UUID(bytes=guid)  # TODO: verify this
+
+
+class MeTileAdapter(Adapter):
+    width: int
+    height: int
+
+    def __init__(self, subcon, width: int, height: int):
+        super().__init__(subcon)
+        self.width = width
+        self.height = height
+
+    def _encode(self, image: Image, context, path):
+        # No packer found from RGB to BGR;16
+        # return image.tobytes("raw", "BGR;16")
+
+        rgb = image.tobytes("raw", "RGB")
+        r = itertools.islice(rgb, 0, None, 3)
+        g = itertools.islice(rgb, 1, None, 3)
+        b = itertools.islice(rgb, 2, None, 3)
+
+        bgr = bytearray(
+            byte
+            for r_value, g_value, b_value in zip(r, g, b)
+            for byte in (
+                ((g_value << 3) & 0b11100000) | (b_value >> 3 & 0b00011111),
+                (r_value & 0b11111000) | ((g_value >> 2) >> 3 & 0b00000111),
+            )
+        )
+
+        return b"" + bgr
+
+    def _decode(self, image: bytes, context, path):
+        return Image.frombytes("RGB", (self.width, self.height), image, "raw", "BGR;16")
+
+
+ARGB = Int32ul
+
+TileData = Padded(
+    16 + 4 + 4 + 2 + 2 + 60,
+    construct.Struct(
+        "GUID" / GUIDAdapter(Bytes(16)),
+        "Order" / Int32ul,
+        "ThemeColor" / Int32ul,
+        "NameLength" / Default(Int16ul, construct.len_(this.TileName)),
+        "SettingsMask" / Int16ul,
+        "TileName" / PaddedString(this.NameLength, "u16"),
+        "OwnerGUID" / GUIDAdapter(Bytes(16)),
+    ),
+)  # TODO: verify this
 
 
 BandSystemTime = construct.Struct(
@@ -103,3 +165,8 @@ class FirmwareSdkCheckPlatform(enum.IntEnum):
     WindowsPhone = 1
     Windows = 2
     Desktop = 3
+
+
+class BandType(enum.IntEnum):
+    Cargo = 1
+    Envoy = 2
