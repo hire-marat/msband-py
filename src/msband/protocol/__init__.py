@@ -21,7 +21,7 @@ class ProtocolInterface:
     def constants(self) -> BandConstants:
         if self.band_type is None:
             api_version = self.command(Command.get("CoreModuleGetApiVersion"))
-            self.band_type = BandType.Envoy if api_version > 30 else BandType.Cargo
+            self.band_type = BandType.Envoy if api_version > 32 else BandType.Cargo
         return BandConstants.by_type[self.band_type]
 
     def acquire(self, **kwargs) -> None:
@@ -83,8 +83,8 @@ class ProtocolInterface:
         try:
             return response_data, StatusPacket.parse(status_data).Status
         except construct.ConstError:
-            logging.warning(response_data)
-            logging.warning(status_data)
+            logging.warning(f"Response: {response_data!r}")
+            logging.warning(f"Status: {status_data!r}")
             raise
 
     def command(self, command: typing.Union[Command, str], **kwargs) -> typing.Any:
@@ -164,6 +164,9 @@ class USBInterface(ProtocolInterface):
     __slots__ = "bulk_in", "bulk_out"
 
     def __init__(self, id: str = None, vid: int = 0x045E, pid: int = 0x02D6):
+        band1_pid = 0x02D7
+        band2_pid = 0x02D6
+
         super().__init__()
         self.bulk_in = None
         self.bulk_out = None
@@ -180,6 +183,9 @@ class USBInterface(ProtocolInterface):
             filter_kwargs["iSerialNumber"] = id
 
         band: usb.core.Device = usb.core.find(**filter_kwargs)
+
+        if band is None:
+            raise Exception(f"No Band device found with variables {self.acquire_vars}")
 
         (configuration,) = band
         configuration.set()

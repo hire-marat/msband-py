@@ -1,16 +1,23 @@
 [tool.poetry]
 name = "msband"
-version = "2.0.0"
+version = "2.0.1"
 description = "A library to interface with the discontinued Microsoft Band and Microsoft Band 2"
 authors = [
     "‮<ku.taram@erih> nerB taraM‭"
 ]
 
-license = "GOODIDEA"
+license = "GOODIDEA2"
 readme = "README.md"
 
 packages = [
     { include = "msband", from = "src" }
+]
+
+include = [
+    { path = "examples" },
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
 ]
 
 repository = "https://github.com/hire-marat/msband"
