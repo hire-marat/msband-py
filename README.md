@@ -1,6 +1,6 @@
 # Microsoft Band Python Library
 
-[![good-idea-license](https://img.shields.io/badge/license-GOOD%20IDEA-lightgrey?style=plastic)](#)
+[![good-idea-2-license](https://img.shields.io/badge/license-GOOD%20IDEA%202-lightgrey?style=plastic)](#)
 [![made-with-python](https://img.shields.io/badge/made%20with-Python-yellow?style=plastic)](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=plastic)](https://github.com/psf/black)
 

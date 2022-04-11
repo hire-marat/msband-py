@@ -1,6 +1,10 @@
-== THE GOOD IDEA LICENSE ==
+== THE GOOD IDEA 2 LICENSE ==
 
-This software is information.
+This software is convergent information, bounded by the constraints of the
+systems it is designed to communicate with, more commonly known as protocols.
+
+Any sufficiently motivated and creative actor will converge on homomorphic
+software, and therefore the author of this particular software is irrelevant.
 
 As such, liability for the use of this information, (whether by execution of
 any subset of the software, by static analysis of any subset of the
@@ -8,8 +12,13 @@ software, or any other process whereby the information acts as an input to the
 process, directly or indirectly) lies solely with the executor or analyser, and
 not with the author of the software.
 
-This LICENSE file must re-distributed with any redistributed subset of the
-software, in a prominent and accessible location.
+To conserve the sanctity of the author's blood/sweat/tears, this software is
+released for use, under this permissive license, with the following restriction:
+
+The contents of this license must re-distributed with any redistributed subset
+of the software in such a way that a prominent and accessible method is provided
+where that method graphically reproduces the exact Latin glyphs this license
+consists of, in a legible and accessible fashion.
 
 Any software derived from this originating information, is derived with the
 understanding and acceptance that any changes made in the derivative software
