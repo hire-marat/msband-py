@@ -17,29 +17,29 @@
 * Pair the Band with your machine, making sure to press `No` when it prompts to use an iPhone/BLE
 * Run `control printers` to open the `Devices and Printers`
 * Find the MAC Address of your device in Properties -> Bluetooth -> Troubleshooting Information -> Unique identifier
-* Copy the `BluetoothInterface` example from `msband/examples/connect.py` and replace `BLUETOOTH_MAC_ADDRESS` with the MAC Address of your device
+* Copy the `BluetoothInterface` example from `examples/connect.py` and replace `BLUETOOTH_MAC_ADDRESS` with the MAC Address of your device
 
 ## Setting up USB
 ### on Linux
 You probably already have libusb set up, and if that's the case, PyUSB will use it as a backend automatically.  
 If that's not the case, please research PyUSB compatibility with your distro.
 #### For a Microsoft Band 1
-* Copy the `USBInterface` example from `msband/examples/connect.py`
+* Copy the `USBInterface` example from `examples/connect.py`
 * Replace `USBInterface("")` with `USBInterface("", pid=0x02D7)`
 #### For a Microsoft Band 2
-* Copy the `USBInterface` example from `msband/examples/connect.py`
+* Copy the `USBInterface` example from `examples/connect.py`
 ### on Windows
 #### For a Microsoft Band 1
 * Get [libusb-win32](//sourceforge.net/projects/libusb-win32/) *[sourceforge.net]*
 * Open the `Filter Wizard`
 * `Install a device filter` for the `vid:045e pid:02d7` `WinUsb Device`
-* Copy the `USBInterface` example from `msband/examples/connect.py`
+* Copy the `USBInterface` example from `examples/connect.py`
 * Replace `USBInterface("")` with `USBInterface("", pid=0x02D7)`
 #### For a Microsoft Band 2
 * Get [libusb-win32](//sourceforge.net/projects/libusb-win32/) *[sourceforge.net]*
 * Open the `Filter Wizard`
 * `Install a device filter` for the `vid:045e pid:02d6 rev:0001` `WinUsb Device`
-* Copy the `USBInterface` example from `msband/examples/connect.py`
+* Copy the `USBInterface` example from `examples/connect.py`
 
 ## Running the examples
 * Open an interpreter using the virtualenv set up by Poetry
