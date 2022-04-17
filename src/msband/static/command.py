@@ -3,14 +3,19 @@ import construct
 import dataclasses
 from msband.static.facility import Facility, FacilityAdapter
 from msband.static import (
-    ARGB,
+    ArgbStruct,
     TileData,
     BoolAdapter,
+    Bytes,
+    GUIDAdapter,
+    GUIDStringAdapter,
+    TileSettings,
     Version,
     FirmwareApp,
     FirmwareSdkCheckPlatform,
     BandTime,
     BandSystemTime,
+    PUSH_SERVICE,
 )
 from construct import (
     this,
@@ -47,13 +52,13 @@ class Command:
     Transfer: typing.Optional[typing.Dict[str, construct.Construct]] = None
     Response: typing.Optional[construct.Construct] = None
 
-    from_name: typing.ClassVar = {}  # type: typing.Dict[str, "Command"]
-    from_bytes: typing.ClassVar = {}  # type: typing.Dict[bytes, "Command"]
-    from_int: typing.ClassVar = {}  # type: typing.Dict[int, "Command"]
-    from_fields: typing.ClassVar = (
-        {}
-    )  # type: typing.Dict[typing.Tuple[Facility, int, bool], "Command"]
-    all: typing.ClassVar = []
+    from_name: typing.ClassVar = typing.cast(typing.Dict[str, "Command"], {})
+    from_bytes: typing.ClassVar = typing.cast(typing.Dict[bytes, "Command"], {})
+    from_int: typing.ClassVar = typing.cast(typing.Dict[int, "Command"], {})
+    from_fields: typing.ClassVar = typing.cast(
+        typing.Dict[typing.Tuple[Facility, int, bool], "Command"], {}
+    )
+    all: typing.ClassVar = typing.cast(typing.List["Command"], [])
 
     struct: typing.ClassVar = construct.Struct(
         "Code" / Default(Pass, 0),
@@ -281,7 +286,7 @@ CoreModuleGetUniqueID = Command(
         Int8ul,
         construct.Struct(
             "IdVersion" / Int8ul,
-            "Id" / PaddedString(64, "u16"),
+            "Id" / GUIDStringAdapter(PaddedString(32 * 2, "utf_16_le")),
         ),
         includelength=True,
     ),
@@ -458,12 +463,22 @@ RemoteSubscriptionSubscribe = Command(
     Facility=Facility.LibraryRemoteSubscription,
     Code=0,
     Transferless=False,
+    Transfer={
+        "Type": Int8ul,
+        "Flag": Const(False, Padded(4, Flag)),
+    },
+    Response=Pass,
 )
 
 RemoteSubscriptionUnsubscribe = Command(
     Facility=Facility.LibraryRemoteSubscription,
     Code=1,
     Transferless=False,
+    Transfer={
+        "Type": Int8ul,
+        "Flag": Const(False, Padded(4, Flag)),
+    },
+    Response=Pass,
 )
 
 RemoteSubscriptionGetDataLength = Command(
@@ -482,12 +497,23 @@ RemoteSubscriptionSubscribeId = Command(
     Facility=Facility.LibraryRemoteSubscription,
     Code=7,
     Transferless=False,
+    Transfer={
+        "Type": Int8ul,
+        "Flag": Const(False, Padded(4, Flag)),
+        "GUID": Const(PUSH_SERVICE, GUIDAdapter(Bytes(16))),
+    },
+    Response=Pass,
 )
 
 RemoteSubscriptionUnsubscribeId = Command(
     Facility=Facility.LibraryRemoteSubscription,
     Code=8,
     Transferless=False,
+    Transfer={
+        "Type": Int8ul,
+        "GUID": Const(PUSH_SERVICE, GUIDAdapter(Bytes(16))),
+    },
+    Response=Pass,
 )
 
 Notification = Command(
@@ -572,7 +598,8 @@ InstalledAppListSet = Command(
     Transfer={
         "Tiles": PrefixedArray(Int32ul, TileData),
     },
-)  # TODO: verify
+    Response=Pass,
+)
 
 InstalledAppListStartStripSyncStart = Command(
     Facility=Facility.ModuleInstalledAppList,
@@ -600,6 +627,10 @@ InstalledAppListSetTile = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=6,
     Transferless=False,
+    Transfer={
+        "TileData": TileData,
+    },
+    Response=Pass,
 )
 
 InstalledAppListGetTile = Command(
@@ -618,6 +649,11 @@ InstalledAppListSetSettingsMask = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=14,
     Transferless=False,
+    Transfer={
+        "GUID": GUIDAdapter(Bytes(16)),
+        "SettingsMask": Enum(Int16ul, TileSettings),
+    },
+    Response=Pass,
 )
 
 InstalledAppListEnableSetting = Command(
@@ -655,6 +691,7 @@ InstalledAppListGetMaxTileAllocatedCount = Command(
     Facility=Facility.ModuleInstalledAppList,
     Code=22,
     Transferless=True,
+    Response=Int32ul,
 )
 
 SystemSettingsOobeCompleteClear = Command(
@@ -714,12 +751,16 @@ SystemSettingsEnableDemoMode = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=25,
     Transferless=False,
+    Transfer={},
+    Response=Pass,
 )
 
 SystemSettingsDisableDemoMode = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=26,
     Transferless=False,
+    Transfer={},
+    Response=Pass,
 )
 
 SRAMFWUpdateLoadData = Command(
@@ -766,6 +807,10 @@ GpsEphemerisCoverageDates = Command(
     Facility=Facility.LibraryGps,
     Code=13,
     Transferless=True,
+    Response=construct.Struct(
+        "From" / BandTime(Int64ul),
+        "Until" / BandTime(Int64ul),
+    ),
 )
 
 FireballUINavigateToScreen = Command(
@@ -831,12 +876,12 @@ ThemeColorSetCustomTheme = Command(
     Code=2,
     Transferless=False,
     Transfer={
-        "Base": ARGB,
-        "Highlight": ARGB,
-        "Lowlight": ARGB,
-        "SecondaryText": ARGB,
-        "HighContrast": ARGB,
-        "Muted": ARGB,
+        "Base": ArgbStruct,
+        "Highlight": ArgbStruct,
+        "Lowlight": ArgbStruct,
+        "SecondaryText": ArgbStruct,
+        "HighContrast": ArgbStruct,
+        "Muted": ArgbStruct,
         "GUID": PaddedString(16, "u8"),
     },
 )
@@ -845,6 +890,8 @@ ThemeColorReset = Command(
     Facility=Facility.ModuleThemeColor,
     Code=4,
     Transferless=False,
+    Transfer={},
+    Response=Pass,
 )
 
 HapticPlayVibrationStream = Command(
@@ -1040,6 +1087,7 @@ CrashDumpGetFileSize = Command(
     Facility=Facility.DriverCrashDump,
     Code=1,
     Transferless=True,
+    Response=Int32ul,
 )
 
 CrashDumpGetAndDeleteFile = Command(
@@ -1052,12 +1100,18 @@ InstrumentationGetFileSize = Command(
     Facility=Facility.ModuleInstrumentation,
     Code=4,
     Transferless=True,
+    Arguments={},
+    Response=Int32ul,
 )
 
 InstrumentationGetFile = Command(
     Facility=Facility.ModuleInstrumentation,
     Code=5,
     Transferless=True,
+    Arguments={
+        "DataLength": Int32ul,
+    },
+    Response=GreedyBytes,
 )
 
 PersistedStatisticsRunGet = Command(

@@ -23,19 +23,20 @@ include = [
 repository = "https://github.com/hire-marat/msband"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.9"  # for dict union operator
 
-# bleak = "0.11.0" for BLE later
-construct = "^2.10"
-pyusb = "^1.2"
-pillow = "^9.1"
+#bleak = "^0.14"  # for connecting via BLE
+construct = "^2.10"  # for packing and unpacking wire formats
+pillow = "^9.1"  # for image processing
+pyusb = "^1.2"  # for interfacing via USB
 
-[tool.poetry.dev-dependencies]
-ipython = "*"
-poetry = "*"
-pyperclip = "*"
+[tool.poetry.dev-dependencies]  # development assistance
+ipython = "*"  # nice console + PyCharm integration
+poetry = "*"  # for ease of updating
+pyperclip = "*"  # for ease of copy/paste
+python-pcapng = "*"  # for parsing Wireshark sessions
 
-[tool.poetry.dev-dependencies.black]
+[tool.poetry.dev-dependencies.black]  # for code formatting
 version = "*"
 extras = ["d"]
 

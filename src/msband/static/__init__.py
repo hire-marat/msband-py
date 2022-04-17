@@ -1,12 +1,15 @@
 import enum
-import itertools
 import uuid
+import typing
 import logging
 import construct
+import itertools
+import dataclasses
 from PIL import Image
 import datetime as dt
 from construct import (
     this,
+    Hex,
     Int8ul,
     Int16ul,
     Int32ul,
@@ -19,7 +22,11 @@ from construct import (
     Padded,
     Default,
     Bytes,
+    FlagsEnum,
 )
+
+
+PUSH_SERVICE = uuid.UUID(hex="d8895bfd-0461-400d-bd52-dbe2a3c33021")
 
 
 EPOCH = dt.datetime(1601, 1, 1, tzinfo=dt.timezone.utc)
@@ -52,10 +59,18 @@ class BoolAdapter(Adapter):
 
 class GUIDAdapter(Adapter):
     def _encode(self, guid: uuid.UUID, context, path):
-        return guid.bytes
+        return guid.bytes_le
 
     def _decode(self, guid: bytes, context, path):
-        return uuid.UUID(bytes=guid)  # TODO: verify this
+        return uuid.UUID(bytes_le=guid)
+
+
+class GUIDStringAdapter(Adapter):
+    def _encode(self, guid: uuid.UUID, context, path):
+        return guid.hex
+
+    def _decode(self, guid: str, context, path):
+        return uuid.UUID(hex=guid)
 
 
 class MeTileAdapter(Adapter):
@@ -91,20 +106,75 @@ class MeTileAdapter(Adapter):
         return Image.frombytes("RGB", (self.width, self.height), image, "raw", "BGR;16")
 
 
-ARGB = Int32ul
+@dataclasses.dataclass
+class RGB:
+    red: int
+    green: int
+    blue: int
+
+    struct: typing.ClassVar = construct.Struct(
+        "red" / Hex(Int8ul),
+        "green" / Hex(Int8ul),
+        "blue" / Hex(Int8ul),
+    )
+
+    def __repr__(self):
+        return f"#{self.red:02X}{self.green:02X}{self.blue:02X}"
+
+
+@dataclasses.dataclass
+class ARGB(RGB):
+    alpha: int = 255
+
+    struct: typing.ClassVar = construct.Struct(
+        "alpha" / Hex(Int8ul),
+        "red" / Hex(Int8ul),
+        "green" / Hex(Int8ul),
+        "blue" / Hex(Int8ul),
+    )
+
+    def __repr__(self):
+        return f"{super().__repr__()} ({self.alpha/255:.0f}%)"
+
+
+class ArgbAdapter(Adapter):
+    def _encode(self, obj: ARGB, context, path) -> bytes:
+        return ARGB.struct.build(vars(ARGB), **context)
+
+    def _decode(self, obj: bytes, context, path) -> ARGB:
+        parsed = ARGB.struct.parse(obj)
+        return ARGB(alpha=parsed.alpha, red=parsed.red, green=parsed.green, blue=parsed.blue)
+
+
+ArgbStruct = ArgbAdapter(Bytes(4))
+
+
+class TileSettings(enum.IntFlag):
+    Null = 0
+    EnableNotification = 1
+    EnableBadging = 2
+    UseCustomColorForTile = 4
+    EnableAutoUpdate = 8
+    ScreenTimeout30Seconds = 16
+    ScreenTimeoutDisabled = 32
+
+    @typing.overload
+    def __or__(self, other) -> "TileSettings":
+        ...
+
 
 TileData = Padded(
     16 + 4 + 4 + 2 + 2 + 60,
     construct.Struct(
         "GUID" / GUIDAdapter(Bytes(16)),
         "Order" / Int32ul,
-        "ThemeColor" / Int32ul,
-        "NameLength" / Default(Int16ul, construct.len_(this.TileName)),
-        "SettingsMask" / Int16ul,
-        "TileName" / PaddedString(this.NameLength, "u16"),
+        "ThemeColor" / ArgbStruct,
+        "_NameLength" / Default(Int16ul, construct.len_(this.TileName)),
+        "SettingsMask" / FlagsEnum(Int16ul, TileSettings),
+        "TileName" / PaddedString(this._NameLength * 2, "utf_16_le"),
         "OwnerGUID" / GUIDAdapter(Bytes(16)),
     ),
-)  # TODO: verify this
+)
 
 
 BandSystemTime = construct.Struct(
@@ -137,7 +207,7 @@ Profile = Padded(
         "Weight" / Int32ul,
         "Height" / Int16ul,
         "IsFemale" / Flag,
-        "DeviceName" / PaddedString(32, "u16"),
+        "DeviceName" / PaddedString(32, "utf_16_le"),
         "LocaleSettings" / Pass,
         "Metric" / Flag,
         "Telemetry" / Flag,
@@ -170,3 +240,10 @@ class FirmwareSdkCheckPlatform(enum.IntEnum):
 class BandType(enum.IntEnum):
     Cargo = 1
     Envoy = 2
+
+
+class SensorType(enum.IntEnum):
+    HRDebug = 24
+    BatteryGauge = 38
+    AccelGyro_2_4_MS_16G = 94
+    LogEntry = 124

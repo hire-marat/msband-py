@@ -33,7 +33,7 @@ HeaderlessSection = construct.Struct(
 Language = construct.Struct(
     "_Count" / Int32ul,
     "_Pointers" / Array(this._Count, Int32ul),
-    "_Strings" / Array(this._Count, CString("u16")),
+    "_Strings" / Array(this._Count, CString("utf_16_le")),
 )
 
 SectionHeader = construct.Struct(
