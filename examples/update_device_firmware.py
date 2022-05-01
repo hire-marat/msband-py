@@ -4,8 +4,10 @@ from msband.static.command import *
 from msband.static import FirmwareApp
 from msband.protocol import ProtocolInterface
 
+
 # Connect using your preferred interface
 iband: ProtocolInterface = ...
+
 
 firmware_path = pathlib.Path("envoy-2.0.5202.0.bin")
 firmware_size = firmware_path.stat().st_size

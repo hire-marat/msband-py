@@ -1,8 +1,57 @@
+import enum
 import typing
 import itertools
+from construct import Adapter, Default
+from construct_typed import EnumBase as _EnumBase, csfield as _csfield
+from construct_typed.dataclass_struct import Construct, ParsedType, Context
 
 K = typing.TypeVar("K")
 V = typing.TypeVar("V")
+E = typing.TypeVar("E", bound=enum.EnumMeta)
+
+
+class EnumBase(_EnumBase):
+    @classmethod
+    def _missing_(cls, value) -> None:
+        return None
+
+
+def IntEnumAdapter(base_enum: E) -> typing.Type[Adapter]:
+    def _encode(self, obj: E, context, path) -> int:
+        return obj
+
+    def _decode(self, obj: int, context, path) -> E:
+        return base_enum(obj)
+
+    return type(
+        f"{base_enum.__name__}Adapter",
+        (Adapter,),
+        {
+            "__slots__": tuple(),
+            "_encode": _encode,
+            "_decode": _decode,
+        },
+    )
+
+
+t = typing
+
+
+def csfield(
+    subcon: Construct[ParsedType, t.Any],
+    doc: t.Optional[str] = None,
+    parsed: t.Optional[t.Callable[[t.Any, Context], None]] = None,
+    init: typing.Optional[bool] = None,
+) -> ParsedType:
+    field = _csfield(subcon=subcon, doc=doc, parsed=parsed)
+
+    if isinstance(subcon, Default):
+        field.init = True
+
+    if init is not None:
+        field.init = init
+
+    return field
 
 
 def or_strict(*args: V) -> typing.Optional[V]:

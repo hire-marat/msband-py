@@ -1,6 +1,8 @@
 import typing
 import construct
 import dataclasses
+from msband.static.oobe import OobeStageAdapter
+from msband.static.timezone import TimeZoneStruct
 from msband.static.facility import Facility, FacilityAdapter
 from msband.static import (
     ArgbStruct,
@@ -11,11 +13,12 @@ from msband.static import (
     GUIDStringAdapter,
     TileSettings,
     Version,
-    FirmwareApp,
+    FirmwareAppAdapter,
     FirmwareSdkCheckPlatform,
     BandTime,
-    BandSystemTime,
+    BandSystemTimeStruct,
     PUSH_SERVICE,
+    ProfileStruct,
 )
 from construct import (
     this,
@@ -296,7 +299,7 @@ CoreModuleWhoAmI = Command(
     Facility=Facility.LibraryJutil,
     Code=3,
     Transferless=True,
-    Response=Enum(Int8ul, FirmwareApp),
+    Response=FirmwareAppAdapter(Int8ul),
 )
 
 CoreModuleGetLogVersion = Command(
@@ -344,7 +347,7 @@ TimeGetLocalTime = Command(
     Facility=Facility.LibraryTime,
     Code=2,
     Transferless=True,
-    Response=BandSystemTime,
+    Response=BandSystemTimeStruct,
 )
 
 TimeSetTimeZoneFile = Command(
@@ -439,12 +442,20 @@ ProfileGetDataApp = Command(
     Facility=Facility.ModuleProfile,
     Code=6,
     Transferless=True,
+    Arguments={
+        "Length": Const(ProfileStruct.sizeof(), Int32ul),
+    },
+    Response=ProfileStruct,
 )
 
 ProfileSetDataApp = Command(
     Facility=Facility.ModuleProfile,
     Code=7,
     Transferless=False,
+    Transfer={
+        "Profile": ProfileStruct,
+    },
+    Response=Pass,
 )
 
 ProfileGetDataFW = Command(
@@ -720,18 +731,89 @@ SystemSettingsGetTimeZone = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=10,
     Transferless=True,
+    Response=TimeZoneStruct,
 )
 
 SystemSettingsSetTimeZone = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=11,
     Transferless=False,
+    Transfer={"TimeZone": TimeZoneStruct},
+    Response=Pass,
+)
+
+SystemSettings13 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=13,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
 )
 
 SystemSettingsSetEphemerisFile = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=15,
     Transferless=False,
+    Transfer={"Data": GreedyBytes},
+    Response=Pass,
+)
+
+SystemSettings16 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=16,
+    Transferless=True,
+    Arguments={
+        "DataLength": Int32ul,
+    },
+    Response=GreedyBytes,  # 0x64646464
+)
+
+SystemSettings18 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=18,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
+)
+
+SystemSettings19 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=19,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
+)
+
+SystemSettings21 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=21,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
+)
+
+SystemSettings23 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=23,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
+)
+
+SystemSettings24 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=24,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,  # 0x01010101
+)
+
+SystemSettings28 = Command(
+    Facility=Facility.ModuleSystemSettings,
+    Code=28,
+    Transferless=True,
+    Arguments={},
+    Response=Int32ul,
 )
 
 SystemSettingsGetMeTileImageID = Command(
@@ -929,17 +1011,16 @@ OobeSetStage = Command(
     Code=0,
     Transferless=False,
     Transfer={
-        "Stage": Int16ul,
+        "Stage": OobeStageAdapter(Int16ul),
     },
+    Response=Pass,
 )
 
 OobeGetStage = Command(
     Facility=Facility.ModuleOobe,
     Code=1,
     Transferless=True,
-    Response=construct.Struct(
-        "Stage" / Int16ul,
-    ),
+    Response=OobeStageAdapter(Int16ul),
 )
 
 OobeFinalize = Command(

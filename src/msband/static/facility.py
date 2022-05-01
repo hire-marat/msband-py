@@ -1,16 +1,7 @@
-import enum
-from construct import Adapter
+from msband.sugar import IntEnumAdapter, EnumBase
 
 
-class FacilityAdapter(Adapter):
-    def _encode(self, obj, context, path):
-        return obj
-
-    def _decode(self, obj, context, path):
-        return Facility(obj)
-
-
-class Facility(enum.IntEnum):
+class Facility(EnumBase):
     Mystery = 0xA4
 
     Null = Min = Invalid = 0x00
@@ -140,3 +131,6 @@ class Facility(enum.IntEnum):
 
     Reserved2Base = 0xF0
     Reserved2End = Max = 0xFF
+
+
+FacilityAdapter = IntEnumAdapter(Facility)

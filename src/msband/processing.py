@@ -14,6 +14,6 @@ def process_cs_int_enum(input: str):
         mapping[name] = current
         current += 1
 
-    return """class NewEnum(enum.IntEnum):\n""" + "\n".join(
-        f"    {name} = {value:02X}" for name, value in mapping.items()
+    return """class NewEnum(EnumBase):\n""" + "\n".join(
+        f"    {name} = 0x{value:02X}" for name, value in mapping.items()
     )

@@ -39,7 +39,7 @@ class Severity(IntEnum):
 
 
 class Status(Enum):
-    OobeError0 = (True, Severity.Error, Facility.ModuleOobe, 0)
+    NotInOobe = (True, Severity.Error, Facility.ModuleOobe, 0)
     OobeError8 = (True, Severity.Error, Facility.ModuleOobe, 8)
 
     BadDataLength = (True, Severity.Error, Facility.Mystery, 1)

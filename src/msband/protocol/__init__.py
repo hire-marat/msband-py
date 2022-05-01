@@ -1,13 +1,11 @@
 import typing
 import logging
 import construct
+from msband.sugar import bites
 from msband.static import BandType
 from msband.static.command import Command
 from msband.static.constants import BandConstants
 from msband.static.status import Status, StatusPacket
-
-
-MAX_TRANSFER = 64
 
 
 class ProtocolInterface:
@@ -98,15 +96,17 @@ class ProtocolInterface:
         response_prototype = kwargs.get("Response") or command.Response
 
         # Result
-        if response_prototype is not None:
+        if response_prototype is None:
+            return result_bytes
+
+        else:
             if response_prototype is construct.Pass:
                 return status
+
             else:
                 if status.value[1] != 0:
                     return result_bytes, status
                 return response_prototype.parse(result_bytes)
-        else:
-            return result_bytes
 
 
 class MockInterface(ProtocolInterface):
@@ -160,6 +160,9 @@ class BluetoothInterface(ProtocolInterface):
         return self.socket.recv(length)
 
 
+MAX_USB_TRANSFER = 64
+
+
 class USBInterface(ProtocolInterface):
     __slots__ = "bulk_in", "bulk_out"
 
@@ -199,7 +202,12 @@ class USBInterface(ProtocolInterface):
         self.bulk_out.clear_halt()
 
     def send(self, data: bytes, raw: bool = True) -> int:
-        return self.bulk_out.write(data)
+        written = 0
+
+        for data_slice in bites(data, MAX_USB_TRANSFER):
+            written += self.bulk_out.write(b"" + bytearray(data_slice))
+
+        return written
 
     def read(self, length: int) -> bytes:
         return self.bulk_in.read(length)

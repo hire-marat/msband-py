@@ -1,16 +1,7 @@
-import enum
-from construct import Adapter
+from msband.sugar import IntEnumAdapter, EnumBase
 
 
-class ScreenAdapter(Adapter):
-    def _encode(self, obj, context, path):
-        return obj
-
-    def _decode(self, obj, context, path):
-        return Screen(obj)
-
-
-class Screen(enum.IntEnum):
+class Screen(EnumBase):
     Settings = 0x00
     Home = 0x01
     Me = 0x02
@@ -112,3 +103,6 @@ class Screen(enum.IntEnum):
 
     IdUnknown = 0xFFFE
     Null = 0xFFFF
+
+
+ScreenAdapter = IntEnumAdapter(Screen)

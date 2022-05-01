@@ -21,11 +21,13 @@ I do have something in the works to enable interacting with a Band through Chrom
 * Parsing FirmwareUpdate.bin
 * Escaping demo mode
 * Entering demo mode (not recommended)
+* Escaping OOBE (on Band 2)
+* Customising profile (on Band 2)
 
 ## Planned Features
 * Communicating with a Band over BLE
-* Escaping OOBE
-* Setting profile
+* Escaping OOBE (on Band 1)
+* Customising profile (on Band 1)
 * Customising tile layout
 * Customising colour scheme
 * Updating calendar items
@@ -38,11 +40,11 @@ I do have something in the works to enable interacting with a Band through Chrom
 * ~~Shenanigans~~
 
 ## Setting up a development environment
-`msband` depends on `poetry` for building, `construct` for parsing/building data structures, `pyusb` for USB stuff, and `pillow` for reading images.  
+`msband` depends on `poetry` for building, `construct`+`construct_typed` for parsing/building data structures, `pyusb` for USB stuff, and `pillow` for reading images.  
 
 Thankfully, Poetry takes care of setting up the virtual environment correctly, so here's the short set of instructions to get started:
 
-* Install Python 3.9 or higher
+* Install Python 3.10 or higher
 * `git clone git@github.com:hire-marat/msband.git --depth 1`
 * `cd msband`
 * `py -m pip install poetry`

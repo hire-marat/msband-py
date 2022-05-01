@@ -3,8 +3,10 @@ from msband.static.command import *
 from msband.static.status import Status
 from msband.protocol import ProtocolInterface
 
+
 # Connect using your preferred interface
 iband: ProtocolInterface = ...
+
 
 success = set()
 invalid = set()
