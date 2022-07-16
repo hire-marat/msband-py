@@ -5,12 +5,13 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=plastic)](https://github.com/psf/black)
 
 This library is currently just a side project to create a Python interface for the Microsoft Band and Microsoft Band 2.  
-It doesn't have any friendly UIs, so unless you like gettings your hands dirty (or reading amazing Python code) this probably isn't for you. Sorry.  
+It doesn't have any friendly UIs, so unless you like gettings your hands dirty (or reading my Python code) this probably isn't for you. Sorry.  
 I do have something in the works to enable interacting with a Band through Chromium though, stay tuned...
 
 ## Supported Features
 * Communicating with a Band over Bluetooth
 * Communicating with a Band over USB
+* Communicating with a Band over BLE (partially)
 * Getting/setting Band time
 * Decoding/encoding Band RLE icons
 * Reading/setting the Me Tile (watchface background)
@@ -25,7 +26,6 @@ I do have something in the works to enable interacting with a Band through Chrom
 * Customising profile (on Band 2)
 
 ## Planned Features
-* Communicating with a Band over BLE
 * Escaping OOBE (on Band 1)
 * Customising profile (on Band 1)
 * Customising tile layout
@@ -40,7 +40,7 @@ I do have something in the works to enable interacting with a Band through Chrom
 * ~~Shenanigans~~
 
 ## Setting up a development environment
-`msband` depends on `poetry` for building, `construct`+`construct_typed` for parsing/building data structures, `pyusb` for USB stuff, and `pillow` for reading images.  
+`msband` depends on `poetry` for building, `construct`+`construct_typed` for parsing/building data structures, `bleak` for BLE stuff, `pyusb` for USB stuff, and `pillow` for reading images.  
 
 Thankfully, Poetry takes care of setting up the virtual environment correctly, so here's the short set of instructions to get started:
 
@@ -57,6 +57,14 @@ Thankfully, Poetry takes care of setting up the virtual environment correctly, s
 * Run `control printers` to open the `Devices and Printers`
 * Find the MAC Address of your device in Properties -> Bluetooth -> Troubleshooting Information -> Unique identifier
 * Copy the `BluetoothInterface` example from [examples/connect.py](examples/connect.py) and replace `BLUETOOTH_MAC_ADDRESS` with the MAC Address of your device
+
+## Setting up Bluetooth Low Energy
+### on Windows
+* Pair the Band with your machine, making sure to press `Yes` when it prompts to use an iPhone/BLE
+* Run `control printers` to open the `Devices and Printers`
+* Find the public MAC Address of your device in Properties -> Connected Device -> Unique identifier
+* Copy the `BLEv2Interface` example from [examples/connect.py](examples/connect.py) and replace `BLUETOOTH_MAC_ADDRESS` with the public MAC Address of your device
+* Best run in a Python interpreter with a global await such as IPython in PyCharm
 
 ## Setting up USB
 ### on Linux

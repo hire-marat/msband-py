@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "msband"
-version = "3.0.0"
+version = "3.1.0"
 description = "A library to interface with the discontinued Microsoft Band and Microsoft Band 2"
 authors = [
     "‮<ku.taram@erih> nerB taraM‭"
@@ -25,7 +25,7 @@ repository = "https://github.com/hire-marat/msband"
 [tool.poetry.dependencies]
 python = "^3.10"  # for dataclasses kwonly
 
-#bleak = "^0.14"  # for connecting via BLE
+bleak = "^0.14"  # for connecting via BLE
 construct = "*"  # for packing and unpacking wire formats
 construct-typing = "0.5.2"  # typehints and objects for the wire formats
 pillow = "^9.1"  # for image processing

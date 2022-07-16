@@ -3,6 +3,7 @@ import construct
 import dataclasses
 from msband.static.oobe import OobeStageAdapter
 from msband.static.timezone import TimeZoneStruct
+from msband.static.vibration import VibrationPatternAdapter
 from msband.static.facility import Facility, FacilityAdapter
 from msband.static import (
     ArgbStruct,
@@ -19,6 +20,7 @@ from msband.static import (
     BandSystemTimeStruct,
     PUSH_SERVICE,
     ProfileStruct,
+    UserProfileStruct,
 )
 from construct import (
     this,
@@ -267,6 +269,20 @@ class Command:
         )
 
 
+UsbCmdProtocolGetSize = Command(
+    Facility=Facility.LibraryUsbCmdProtocol,
+    Code=0,
+    Transferless=True,
+    Response=Int32ul,
+)
+
+UsbCmdProtocolGetFile = Command(
+    Facility=Facility.LibraryUsbCmdProtocol,
+    Code=1,
+    Transferless=True,
+    Response=GreedyBytes,
+)  # max DataLength seems to be 0x0E28
+
 CoreModuleGetVersion = Command(
     Facility=Facility.LibraryJutil,
     Code=1,
@@ -302,6 +318,13 @@ CoreModuleWhoAmI = Command(
     Response=FirmwareAppAdapter(Int8ul),
 )
 
+CoreModule4 = Command(
+    Facility=Facility.LibraryJutil,
+    Code=4,
+    Transferless=True,
+    Response=Int32ul,
+)
+
 CoreModuleGetLogVersion = Command(
     Facility=Facility.LibraryJutil,
     Code=5,
@@ -326,6 +349,20 @@ CoreModuleSdkCheck = Command(
         "Reserved": Int8ul,
         "Three": Const(3, Int16ul),
     },
+)
+
+CoreModule9 = Command(
+    Facility=Facility.LibraryJutil,
+    Code=9,
+    Transferless=True,
+    Response=Int8ul,
+)
+
+CoreModule10 = Command(
+    Facility=Facility.LibraryJutil,
+    Code=10,
+    Transferless=True,
+    Response=Int16ul,
 )
 
 TimeGetUtcTime = Command(
@@ -356,6 +393,13 @@ TimeSetTimeZoneFile = Command(
     Transferless=False,
 )  # TODO
 
+Time5 = Command(
+    Facility=Facility.LibraryTime,
+    Code=5,
+    Transferless=True,
+    Response=Int32ul,
+)
+
 TimeZoneFileGetVersion = Command(
     Facility=Facility.LibraryTime,
     Code=6,
@@ -381,6 +425,13 @@ LoggerDisableLogging = Command(
     Transferless=False,
 )
 
+Logger6 = Command(
+    Facility=Facility.LibraryLogger,
+    Code=6,
+    Transferless=True,
+    Response=Array(2, Int32ul),
+)
+
 LoggerGetChunkCounts = Command(
     Facility=Facility.LibraryLogger,
     Code=9,
@@ -389,6 +440,18 @@ LoggerGetChunkCounts = Command(
         "LoggedChunkCount" / Int32ul,
         "LoggerChunkCount" / Int32ul,
     ),
+)
+
+Logger11 = Command(
+    Facility=Facility.LibraryLogger,
+    Code=11,
+    Transferless=True,
+)
+
+Logger12 = Command(
+    Facility=Facility.LibraryLogger,
+    Code=12,
+    Transferless=True,
 )
 
 LoggerFlush = Command(
@@ -462,12 +525,20 @@ ProfileGetDataFW = Command(
     Facility=Facility.ModuleProfile,
     Code=8,
     Transferless=True,
+    Arguments={
+        "Length": Const(UserProfileStruct.sizeof(), Int32ul),
+    },
+    Response=UserProfileStruct,
 )
 
 ProfileSetDataFW = Command(
     Facility=Facility.ModuleProfile,
     Code=9,
     Transferless=False,
+    Transfer={
+        "UserProfile": UserProfileStruct,
+    },
+    Response=Pass,
 )
 
 RemoteSubscriptionSubscribe = Command(
@@ -501,6 +572,31 @@ RemoteSubscriptionGetDataLength = Command(
 RemoteSubscriptionGetData = Command(
     Facility=Facility.LibraryRemoteSubscription,
     Code=3,
+    Transferless=True,
+)
+
+RemoteSubscription4 = Command(
+    Facility=Facility.LibraryRemoteSubscription,
+    Code=4,
+    Transferless=True,
+)
+
+RemoteSubscription9 = Command(
+    Facility=Facility.LibraryRemoteSubscription,
+    Code=9,
+    Transferless=True,
+)
+
+RemoteSubscriptio109 = Command(
+    Facility=Facility.LibraryRemoteSubscription,
+    Code=10,
+    Transferless=True,
+    Response=Int16ul,
+)
+
+RemoteSubscription11 = Command(
+    Facility=Facility.LibraryRemoteSubscription,
+    Code=11,
     Transferless=True,
 )
 
@@ -747,7 +843,7 @@ SystemSettings13 = Command(
     Code=13,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Int32ul,  # 1
 )
 
 SystemSettingsSetEphemerisFile = Command(
@@ -762,10 +858,8 @@ SystemSettings16 = Command(
     Facility=Facility.ModuleSystemSettings,
     Code=16,
     Transferless=True,
-    Arguments={
-        "DataLength": Int32ul,
-    },
-    Response=GreedyBytes,  # 0x64646464
+    Arguments={},
+    Response=Int8ul,  # 100
 )
 
 SystemSettings18 = Command(
@@ -773,7 +867,7 @@ SystemSettings18 = Command(
     Code=18,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Array(2, Int16ul),  # 13, 1
 )
 
 SystemSettings19 = Command(
@@ -781,7 +875,7 @@ SystemSettings19 = Command(
     Code=19,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Int32ul,  # 1
 )
 
 SystemSettings21 = Command(
@@ -789,7 +883,7 @@ SystemSettings21 = Command(
     Code=21,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Int32ul,  # 1
 )
 
 SystemSettings23 = Command(
@@ -797,7 +891,7 @@ SystemSettings23 = Command(
     Code=23,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Int32ul,  # 350
 )
 
 SystemSettings24 = Command(
@@ -805,7 +899,7 @@ SystemSettings24 = Command(
     Code=24,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,  # 0x01010101
+    Response=Int8ul,  # 1
 )
 
 SystemSettings28 = Command(
@@ -813,7 +907,7 @@ SystemSettings28 = Command(
     Code=28,
     Transferless=True,
     Arguments={},
-    Response=Int32ul,
+    Response=Int8ul,  # 0
 )
 
 SystemSettingsGetMeTileImageID = Command(
@@ -866,6 +960,18 @@ SRAMFWUpdateValidateAssets = Command(
     Facility=Facility.LibrarySRAMFWUpdate,
     Code=2,
     Transferless=True,
+    Response=construct.Struct(
+        "Version"
+        / Array(
+            3,
+            construct.Struct(
+                "AppName" / PaddedString(5, "u8"),
+                "PCBId" / Int8ul,
+                "Version" / Version,
+            ),
+        ),
+        "Valid" / Padded(4, Flag),
+    ),
 )
 
 EFlashRead = Command(
@@ -951,6 +1057,14 @@ ThemeColorGetFirstPartyTheme = Command(
     Facility=Facility.ModuleThemeColor,
     Code=1,
     Transferless=True,
+    Response=construct.Struct(
+        "Base" / ArgbStruct,
+        "Highlight" / ArgbStruct,
+        "Lowlight" / ArgbStruct,
+        "SecondaryText" / ArgbStruct,
+        "HighContrast" / ArgbStruct,
+        "Muted" / ArgbStruct,
+    ),
 )
 
 ThemeColorSetCustomTheme = Command(
@@ -976,10 +1090,28 @@ ThemeColorReset = Command(
     Response=Pass,
 )
 
+ThemeColor5 = Command(
+    Facility=Facility.ModuleThemeColor,
+    Code=5,
+    Transferless=True,
+    Response=construct.Struct(
+        "Base" / ArgbStruct,
+        "Highlight" / ArgbStruct,
+        "Lowlight" / ArgbStruct,
+        "SecondaryText" / ArgbStruct,
+        "HighContrast" / ArgbStruct,
+        "Muted" / ArgbStruct,
+    ),
+)
+
 HapticPlayVibrationStream = Command(
     Facility=Facility.LibraryHaptic,
     Code=0,
     Transferless=False,
+    Transfer={
+        "VibrationPattern": VibrationPatternAdapter(Int8ul),
+    },
+    Response=Pass,
 )
 
 GoalTrackerSet = Command(
@@ -1004,6 +1136,13 @@ GolfCourseFileGetMaxSize = Command(
     Facility=Facility.LibraryGolf,
     Code=1,
     Transferless=True,
+)
+
+Golf2 = Command(
+    Facility=Facility.LibraryGolf,
+    Code=2,
+    Transferless=True,
+    Response=Bytes(4),
 )
 
 OobeSetStage = Command(
@@ -1143,7 +1282,47 @@ GetProductSerialNumber = Command(
     Facility=Facility.LibraryConfiguration,
     Code=8,
     Transferless=True,
-    Response=PaddedString(12, "u8"),
+    Response=PaddedString(12, "ascii"),
+)
+
+Configuration10 = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=10,
+    Transferless=True,
+)
+
+GetPcbId = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=11,
+    Transferless=True,
+    Response=Int64ul,
+)
+
+Configuration12 = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=12,
+    Transferless=True,
+    Response=PaddedString(16, "ascii"),
+)
+
+GetBluetoothMac = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=13,
+    Transferless=True,
+    Response=Int64ul,
+)
+
+Configuration14 = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=14,
+    Transferless=True,
+)
+
+Configuration15 = Command(
+    Facility=Facility.LibraryConfiguration,
+    Code=15,
+    Transferless=True,
+    Response=Int32ul,
 )
 
 KeyboardCmd = Command(
@@ -1175,6 +1354,13 @@ CrashDumpGetAndDeleteFile = Command(
     Facility=Facility.DriverCrashDump,
     Code=2,
     Transferless=True,
+)
+
+Instrumentation3 = Command(
+    Facility=Facility.ModuleInstrumentation,
+    Code=3,
+    Transferless=True,
+    Response=Int64ul,
 )
 
 InstrumentationGetFileSize = Command(

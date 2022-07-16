@@ -82,3 +82,16 @@ def bites(
         if not next:
             break
         yield next
+
+
+def byte_bites(
+    iterable_bytething: bytearray, max_len: int, remainder: bool = True
+) -> typing.Generator[bytearray, None, None]:
+    iterable = iter(iterable_bytething)
+    while 1:
+        next = bytearray(itertools.islice(iterable, max_len))
+        if (not remainder) and (len(next) != max_len):
+            break
+        if not next:
+            break
+        yield next

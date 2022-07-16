@@ -9,6 +9,18 @@ from PIL import Image
 import datetime as dt
 from msband.sugar import IntEnumAdapter, EnumBase, csfield
 from construct_typed import DataclassMixin, DataclassStruct, TEnum
+from msband.static.i18n import (
+    LocaleId,
+    LocaleIdAdapter,
+    Language,
+    LanguageAdapter,
+    DisplayTimeFormat,
+    DisplayTimeFormatAdapter,
+    DisplayDateFormat,
+    DisplayDateFormatAdapter,
+    UnitType,
+    UnitTypeAdapter,
+)
 from construct import (
     this,
     Hex,
@@ -32,6 +44,7 @@ dataclasses.Field.__repr__ = reprlib.recursive_repr()(dataclasses.Field.__repr__
 
 
 PUSH_SERVICE = uuid.UUID(hex="d8895bfd-0461-400d-bd52-dbe2a3c33021")
+BAND_APP_IOS = uuid.UUID(hex="090fa552-5e0c-a24d-803b-af536cf97da3")
 
 
 EPOCH = dt.datetime(1601, 1, 1, tzinfo=dt.timezone.utc)
@@ -128,15 +141,6 @@ class FirmwareSdkCheckPlatform(EnumBase):
 FirmwareSdkCheckPlatformAdapter = IntEnumAdapter(FirmwareSdkCheckPlatform)
 
 
-class BandType(EnumBase):
-    Null = 0
-    Cargo = 1
-    Envoy = 2
-
-
-BandTypeAdapter = IntEnumAdapter(BandType)
-
-
 class SensorType(EnumBase):
     HRDebug = 0x18
     BatteryGauge = 0x26
@@ -153,102 +157,6 @@ class Gender(EnumBase):
 
 
 GenderAdapter = IntEnumAdapter(Gender)
-
-
-class LocaleId(enum.IntEnum):
-    XX = 0x00
-    US = 0x01
-    GB = 0x02
-    CA = 0x03
-    FR = 0x04
-    DE = 0x05
-    IT = 0x06
-    MX = 0x07
-    ES = 0x08
-    AU = 0x09
-    NZ = 0x0A
-    DK = 0x0B
-    FI = 0x0C
-    NO = 0x0D
-    NL = 0x0E
-    PT = 0x0F
-    SE = 0x10
-    PL = 0x11
-    CN = 0x12
-    TW = 0x13
-    JP = 0x14
-    KR = 0x15
-    AT = 0x16
-    BE = 0x17
-    HK = 0x18
-    IE = 0x19
-    SG = 0x1A
-    CH = 0x1B
-    ZA = 0x1C
-    SA = 0x1D
-    AE = 0x1E
-
-
-LocaleIdAdapter = IntEnumAdapter(LocaleId)
-
-
-class Language(enum.IntEnum):
-    xx_XX = 0x00
-    en_US = 0x01
-    en_GB = 0x02
-    fr_CA = 0x03
-    fr_FR = 0x04
-    de_DE = 0x05
-    it_IT = 0x06
-    es_MX = 0x07
-    es_ES = 0x08
-    es_US = 0x09
-    da_DK = 0x0A
-    fi_FI = 0x0B
-    nb_NO = 0x0C
-    nl_NL = 0x0D
-    pt_PT = 0x0E
-    sv_SE = 0x0F
-    pl_PL = 0x10
-    zn_CN = 0x11
-    zn_TW = 0x12
-    ja_JP = 0x13
-    ko_KR = 0x14
-
-
-LanguageAdapter = IntEnumAdapter(Language)
-
-
-class DisplayTimeFormat(enum.IntEnum):
-    Null = 0
-    HHmmss = 1
-    Hmmss = 2
-    hhmmss = 3
-    hmmss = 4
-
-
-DisplayTimeFormatAdapter = IntEnumAdapter(DisplayTimeFormat)
-
-
-class DisplayDateFormat(enum.IntEnum):
-    Null = 0
-    yyyyMMdd = 1
-    ddMMyyyy = 2
-    dMMyyyy = 3
-    MMddyyyy = 4
-    Mdyyyy = 5
-
-
-DisplayDateFormatAdapter = IntEnumAdapter(DisplayDateFormat)
-
-
-class UnitType(enum.IntEnum):
-    Null = 0
-    Imperial = 1
-    Metric = 2
-
-
-UnitTypeAdapter = IntEnumAdapter(UnitType)
 
 
 @dataclasses.dataclass
@@ -306,7 +214,7 @@ class TileSettings(enum.IntFlag):
     ScreenTimeoutDisabled = 32
 
     @typing.overload
-    def __or__(self, other) -> "TileSettings":
+    def __or__(self, other: "TileSettings") -> "TileSettings":
         ...
 
 
@@ -423,3 +331,16 @@ class Profile(DataclassMixin):
 
 PROFILE_SIZE = 397  # is it???
 ProfileStruct = Padded(PROFILE_SIZE, DataclassStruct(Profile))
+
+
+@dataclasses.dataclass(kw_only=True)
+class UserProfile(DataclassMixin):
+
+    Version: int = csfield(Int16ul)
+    LastSync: dt.datetime = csfield(BandTime(Int64ul))
+    UserGUID: uuid.UUID = csfield(GUIDAdapter(Bytes(16)))
+
+    ReservedData: bytes = csfield(Bytes(256))
+
+
+UserProfileStruct = DataclassStruct(UserProfile)
